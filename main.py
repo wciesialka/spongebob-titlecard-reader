@@ -29,10 +29,12 @@ def empty_array():
         a.append(None)
     return a
 
+
 def load_data():
     raw = None
     with open("letters/letters.json") as f:
         raw = json.load(f)
+    longest = max((len(v)) for k,v in raw.items())
     x_train = []
     y_train = []
     for key in raw:
@@ -41,8 +43,11 @@ def load_data():
         for sub in raw[key]:
             img_data = image_to_data(f"letters/{key}/{sub}")
             x_sub.append(img_data)
-        for _ in range(len(x_sub), 100):
-            x_sub.append(empty_array())
+        i = 0
+        m = len(x_sub)
+        while len(x_sub) < longest:
+            x_sub.append(x_sub[i])
+            i = (i+1) % m
         x_train.append(x_sub)
     return x_train, y_train
 
@@ -71,7 +76,7 @@ def main():
     predictions = model.predict([x_train])
     prediction = np.argmax(predictions[0])
 
-    print(inv_alphabet[prediction])
+    print(inv_alphabet[y_train[0]],inv_alphabet[prediction])
 
 
 if __name__ == "__main__":
