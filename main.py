@@ -10,19 +10,20 @@ alphabet = {'A': 0, 'B': 1, 'C': 2, 'D': 3, 'E': 4, 'F': 5, 'G': 6, 'H': 7, 'I':
 
 inv_alphabet = {v: k for k, v in alphabet.items()}
 
+W,H = (36,36)
 
 def image_to_data(path):
     data = []
     img = Image.open(path)
-    img = img.resize((24, 24), Image.NEAREST)
+    img = img.resize((W, H), Image.NEAREST)
     img = img.convert(mode="LA")
     size = img.size
-    for y in range(0, size[1]):
-        _y = []
-        for x in range(0, size[0]):
+    for x in range(0, size[0]):
+        _x = []
+        for y in range(0, size[1]):
             l = img.getpixel((x, y))[0]
-            _y.append(l/255)
-        data.append(_y)
+            _x.append(l/255)
+        data.append(_x)
     return data
 
 
@@ -51,7 +52,7 @@ def main(argv):
         model = keras.models.load_model("titlecard_letters.h5")
     except:
         model = tf.keras.models.Sequential()
-        model.add(tf.keras.layers.Flatten(input_shape=(24,24)))  # input layer
+        model.add(tf.keras.layers.Flatten(input_shape=(W,H)))  # input layer
         # hidden layer. 128 neurons
         model.add(tf.keras.layers.Dense(256, activation=tf.nn.relu))
         # another hidden layer. 128 neurons
@@ -70,10 +71,14 @@ def main(argv):
     finally:
         x_test = image_to_data(argv[1])
 
-        predictions = model.predict([[x_test]])
-        prediction = np.argmax(predictions[0])
+        predictions = model.predict([[x_test]])[0]
+        probable_prediction = np.argmax(predictions)
+        for i,prediction in enumerate(predictions):
+            letter = inv_alphabet[i]
+            probability = round((100*prediction),2)
+            print(f"{letter}:\t{probability}%")
 
-        print(inv_alphabet[prediction])
+        print(f"Letter is most likely:\t{inv_alphabet[probable_prediction]}")
 
 if __name__ == "__main__":
     main(sys.argv)
