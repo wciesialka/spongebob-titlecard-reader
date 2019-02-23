@@ -12,9 +12,8 @@ inv_alphabet = {v: k for k, v in alphabet.items()}
 
 W,H = (36,36)
 
-def image_to_data(path):
+def image_to_data(img):
     data = []
-    img = Image.open(path)
     img = img.resize((W, H), Image.NEAREST)
     img = img.convert(mode="LA")
     size = img.size
@@ -36,7 +35,7 @@ def load_data():
     y_train = []
     for key in raw:
         for sub in raw[key]:
-            img_data = image_to_data(f"letters/{key}/{sub}")
+            img_data = image_to_data(Image.open(f"letters/{key}/{sub}"))
             x_train.append(img_data)
             y_train.append(alphabet[key])
     return x_train, y_train
@@ -88,7 +87,7 @@ def main(args):
         letter = inv_alphabet[i]
         probability = round((100*prediction),2)
         print(f"{letter}:\t{probability}%")
-    print(f"Most likely letter is {inv_alphabet[most_likely]}")
+    print(f"Most likely letter is {inv_alphabet[most_likely]} with {round(predictions[most_likely]*100,2)}% confidence")
 
 if __name__ == "__main__":
     main(sys.argv)
