@@ -4,6 +4,11 @@ import numpy as np
 import json
 from PIL import Image
 
+alphabet = {'A': 0, 'B': 1, 'C': 2, 'D': 3, 'E': 4, 'F': 5, 'G': 6, 'H': 7, 'I': 8, 'J': 9, 'K': 10, 'L': 11, 'M': 12,
+            'N': 13, 'O': 14, 'P': 15, 'Q': 16, 'R': 17, 'S': 18, 'T': 19, 'U': 20, 'V': 21, 'W': 22, 'X': 23, 'Y': 24, 'Z': 25}
+
+inv_alphabet = {v: k for k, v in alphabet.items()}
+
 
 def image_to_data(path):
     data = []
@@ -17,6 +22,13 @@ def image_to_data(path):
             data.append(l/255)
     return data
 
+
+def empty_array():
+    a = []
+    for i in range(576):
+        a.append(None)
+    return a
+
 def load_data():
     raw = None
     with open("letters/letters.json") as f:
@@ -24,18 +36,43 @@ def load_data():
     x_train = []
     y_train = []
     for key in raw:
-        y_train.append([key])
+        y_train.append(alphabet[key])
         x_sub = []
         for sub in raw[key]:
             img_data = image_to_data(f"letters/{key}/{sub}")
             x_sub.append(img_data)
+        for _ in range(len(x_sub), 100):
+            x_sub.append(empty_array())
         x_train.append(x_sub)
-    return np.array(x_train), np.array(y_train)
+    return x_train, y_train
 
 
 def main():
     x_train, y_train = load_data()
-    print(x_train)
+    x_train = np.array(x_train)
+    y_train = np.array(y_train)
+
+    model = tf.keras.models.Sequential()
+    model.add(tf.keras.layers.Flatten())  # input layer
+    # hidden layer. 128 neurons
+    model.add(tf.keras.layers.Dense(128, activation=tf.nn.relu))
+    # another hidden layer. 128 neurons
+    model.add(tf.keras.layers.Dense(128, activation=tf.nn.relu))
+    # output layer. 26 classifications (26 letters)
+    model.add(tf.keras.layers.Dense(26, activation=tf.nn.softmax))
+
+    model.compile(optimizer='adam',  # optimizer function
+                  loss='sparse_categorical_crossentropy',  # what is loss?
+                  metrics=['accuracy']  # what to track
+                  )
+
+    model.fit(x_train, y_train, epochs=3)  # 3 iterations
+
+    predictions = model.predict([x_train])
+    prediction = np.argmax(predictions[0])
+
+    print(inv_alphabet[prediction])
+
 
 if __name__ == "__main__":
     main()
