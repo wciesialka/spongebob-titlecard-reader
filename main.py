@@ -60,9 +60,9 @@ def main():
     model = tf.keras.models.Sequential()
     model.add(tf.keras.layers.Flatten())  # input layer
     # hidden layer. 128 neurons
-    model.add(tf.keras.layers.Dense(128, activation=tf.nn.relu))
+    model.add(tf.keras.layers.Dense(256, activation=tf.nn.relu))
     # another hidden layer. 128 neurons
-    model.add(tf.keras.layers.Dense(128, activation=tf.nn.relu))
+    model.add(tf.keras.layers.Dense(256, activation=tf.nn.relu))
     # output layer. 26 classifications (26 letters)
     model.add(tf.keras.layers.Dense(26, activation=tf.nn.softmax))
 
@@ -71,7 +71,7 @@ def main():
                   metrics=['accuracy']  # what to track
                   )
 
-    model.fit(x_train, y_train, epochs=3)  # 3 iterations
+    model.fit(x_train, y_train, epochs=30)  # 3 iterations
 
     predictions = model.predict([x_train])
     prediction = np.argmax(predictions[0])
