@@ -41,16 +41,17 @@ def load_data():
             y_train.append(alphabet[key])
     return x_train, y_train
 
+model_file = "titlecard_letters.h5"
 
-def main(argv):
-    x_train, y_train = load_data()
-
-    x_train = np.array(x_train)
-    y_train = np.array(y_train)
-
+def train():
     try:
-        model = keras.models.load_model("titlecard_letters.h5")
+        model = keras.models.load_model(model_file)
     except:
+        x_train, y_train = load_data()
+
+        x_train = np.array(x_train)
+        y_train = np.array(y_train)
+
         model = tf.keras.models.Sequential()
         model.add(tf.keras.layers.Flatten(input_shape=(W,H)))  # input layer
         # hidden layer. 128 neurons
@@ -65,20 +66,29 @@ def main(argv):
                     metrics=['accuracy']  # what to track
                     )
 
-        model.fit(x_train, y_train, epochs=30)  # 3 iterations
+        model.fit(x_train, y_train, epochs=30)  # 30 iterations
 
-        model.save("titlecard_letters.h5")
+        model.save(model_file)
     finally:
-        x_test = image_to_data(argv[1])
+        return model
 
-        predictions = model.predict([[x_test]])[0]
-        probable_prediction = np.argmax(predictions)
-        for i,prediction in enumerate(predictions):
-            letter = inv_alphabet[i]
-            probability = round((100*prediction),2)
-            print(f"{letter}:\t{probability}%")
+def predict(file):
+    model = train()
 
-        print(f"Letter is most likely:\t{inv_alphabet[probable_prediction]}")
+    x_test = image_to_data(file)
+
+    predictions = model.predict([[x_test]])[0]
+    probable_prediction = np.argmax(predictions)
+
+    return probable_prediction,predictions
+
+def main(args):
+    most_likely, predictions = predict(args[1])
+    for i,prediction in enumerate(predictions):
+        letter = inv_alphabet[i]
+        probability = round((100*prediction),2)
+        print(f"{letter}:\t{probability}%")
+    print(f"Most likely letter is {inv_alphabet[most_likely]}")
 
 if __name__ == "__main__":
     main(sys.argv)
